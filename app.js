@@ -40,21 +40,30 @@ async function saveToFirebase(url, type) {
 window.uploadFile = async function () {
   const fileInput = document.getElementById("fileInput");
   const file = fileInput.files[0];
+  // Progress Bar
+  //const progressBar = document.getElementById("fileProgress");
+
   if (!file) return alert("Please choose a file!");
 
   const formData = new FormData();
   formData.append("file", file);
   formData.append("upload_preset", uploadPreset);
 
-  document.getElementById("statusUpload").textContent = "Uploading...";
+  // Progress Bar Setup
+  //progressBar.style.display = "block";
+  //progressBar.value = 0;
+  /////////progressBar.max = file.size;
+
+
+  document.getElementById("uploadStatus").textContent = "Uploading...";
 
   try {
     const res = await fetch(uploadUrl, { method: "POST", body: formData });
     const data = await res.json();
 
     if (data.secure_url) {
-      document.getElementById("statusUpload").textContent = "Upload complete!";
-      const previewDiv = document.getElementById("previewUpload");
+      document.getElementById("uploadStatus").textContent = "Upload complete!";
+      const previewDiv = document.getElementById("uploadPreview");
 
       if (file.type.startsWith("image/")) {
         previewDiv.innerHTML = `<img src="${data.secure_url}" width="400">`;
@@ -68,10 +77,10 @@ window.uploadFile = async function () {
       // 🔥 Save link to Firebase
       saveToFirebase(data.secure_url, file.type.startsWith("image/") ? "image" : "video");
     } else {
-      document.getElementById("statusUpload").textContent = "Error: " + JSON.stringify(data);
+      document.getElementById("uploadStatus").textContent = "Error: " + JSON.stringify(data);
     }
   } catch (err) {
-    document.getElementById("statusUpload").textContent = "Upload failed!";
+    document.getElementById("uploadStatus").textContent = "Upload failed!";
     console.error(err);
   }
 };
@@ -86,7 +95,7 @@ const camera = document.getElementById("camera");
 const startCameraBtn = document.getElementById("startCamera");
 const startRecordBtn = document.getElementById("startRecord");
 const stopRecordBtn = document.getElementById("stopRecord");
-const uploadBtn = document.getElementById("uploadBtn");
+const uploadRecordedBtn = document.getElementById("uploadRecordedBtn");
 
 // Start Camera (selfie if available)
 startCameraBtn.onclick = async () => {
@@ -115,12 +124,12 @@ startRecordBtn.onclick = () => {
     recordedBlob = new Blob(recordedChunks, { type: "video/webm" });
     const videoURL = URL.createObjectURL(recordedBlob);
 
-    document.getElementById("previewRecord").innerHTML = `
+    document.getElementById("recordPreview").innerHTML = `
       <h4>Recorded Video:</h4>
       <video controls width="400" playsinline>
         <source src="${videoURL}" type="video/webm">
       </video>`;
-    uploadBtn.disabled = false;
+    uploadRecordedBtn.disabled = false;
   };
 
   mediaRecorder.start();
@@ -143,7 +152,7 @@ window.uploadRecording = async function () {
   formData.append("file", recordedBlob, "recordedVideo.webm");
   formData.append("upload_preset", uploadPreset);
 
-  document.getElementById("statusRecord").textContent = "Uploading...";
+  document.getElementById("recordStatus").textContent = "Uploading...";
 
   try {
     const res = await fetch(uploadUrl, { method: "POST", body: formData });
@@ -151,8 +160,8 @@ window.uploadRecording = async function () {
     console.log("Upload response:", data);
 
     if (data.secure_url) {
-      document.getElementById("statusRecord").textContent = "Upload complete!";
-      document.getElementById("previewRecord").innerHTML += `
+      document.getElementById("recordStatus").textContent = "Upload complete!";
+      document.getElementById("recordPreview").innerHTML += `
         <h4>Uploaded to Cloudinary:</h4>
         <video controls width="400" playsinline>
           <source src="${data.secure_url}" type="video/webm">
@@ -162,10 +171,10 @@ window.uploadRecording = async function () {
       // 🔥 Save to Firebase
       saveToFirebase(data.secure_url, "video");
     } else {
-      document.getElementById("statusRecord").textContent = "Error: " + JSON.stringify(data);
+      document.getElementById("recordStatus").textContent = "Error: " + JSON.stringify(data);
     }
   } catch (err) {
-    document.getElementById("statusRecord").textContent = "Upload failed!";
+    document.getElementById("recordStatus").textContent = "Upload failed!";
     console.error(err);
   }
 };
