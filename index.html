@@ -2,37 +2,68 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Upload or Record & Upload to Cloudinary</title>
-  <style>
-    body { font-family: Arial, sans-serif; margin: 20px; }
-    video, img { margin-top: 10px; border: 1px solid #ccc; border-radius: 6px; }
-    button { margin: 5px; padding: 8px 12px; }
-  </style>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Upload or Record & Upload Video/Image to Cloudinary & Firebase</title>
+
+  <!-- Link to external CSS -->
+  <link rel="stylesheet" href="style.css" />
 
   <!-- Firebase SDK (modules) -->
   <script type="module" src="app.js"></script>
 </head>
 
 <body>
-  <h2>Upload or Record Video/Image</h2>
+  <div class="container">
+  <h1 class="title">☁️ Upload or Record Video/Image</h1>
 
   <!-- Option 1: Upload File -->
-  <h3>📂 Upload from Device</h3>
-  <input type="file" id="fileInput" accept="image/*,video/*">
-  <button onclick="uploadFile()">Upload</button>
-  <p id="statusUpload"></p>
-  <div id="previewUpload"></div>
+
+  <section class="card">
+    <h2>📂 Upload from Device</h2>
+    <input type="file" id="fileInput" accept="image/*,video/*" class="file-input"/>
+    <button class="btn primary" onclick="uploadFile()">Upload File</button>
+    <!-- Progress Bar -->
+    <!--<div class="progress-container">
+      <progress id="fileProgress" value="0" max="100" style="display:none;"></progress>
+      <span id="filePercent"></span>
+    </div>-->
+    <div id="uploadStatus" class="status"></div>
+    <div id="uploadPreview" class="preview"></div>
+  </section>
+
 
   <hr>
 
   <!-- Option 2: Record Video -->
-  <h3>🎥 Record from Camera (Selfie)</h3>
-  <video id="camera" width="400" autoplay muted playsinline></video><br>
-  <button id="startCamera">Start Camera</button>
-  <button id="startRecord" disabled>Start Recording</button>
-  <button id="stopRecord" disabled>Stop Recording</button>
-  <button id="uploadBtn" disabled onclick="uploadRecording()">Upload Recording</button>
-  <p id="statusRecord"></p>
-  <div id="previewRecord"></div>
+  
+  <section class="card">
+    <h2>🎥 Record from Camera (Selfie)</h2>
+    <video id="camera" autoplay playsinline muted></video>
+
+     <button id="startCamera">Start Camera</button>
+    <div class="controls">
+      <button id="startRecord" class="btn secondary" disabled>Start Recording</button>
+      <button id="stopRecord" class="btn danger" disabled>Stop Recording</button>
+      <button id="uploadRecordedBtn" class="btn primary" disabled  onclick="uploadRecording()">Upload Recording</button>
+    </div>
+    <!-- Progress Bar -->
+
+    <!-- <div class="progress-container">
+      <progress id="recordProgress" value="0" max="100" style="display:none;"></progress>
+      <span id="recordPercent"></span>
+    </div> -->
+    <div id="recordStatus" class="status"></div>
+    <div id="recordPreview" class="preview"></div>
+  </section>
+
+
+    <footer>
+      <p>Made with ❤️ by FreePoo Startup</p>
+    </footer>
+  </div>
+
+
+
+
 </body>
 </html>
