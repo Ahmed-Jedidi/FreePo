@@ -1,234 +1,38 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>Media Streamer with Sound & Swipe</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta charset="UTF-8">
+  <title>Upload or Record & Upload to Cloudinary</title>
   <style>
-    html, body {
-      margin: 0; padding: 0;
-      background: black;
-      height: 100%;
-      overflow: hidden;
-      font-family: sans-serif;
-      touch-action: manipulation;
-    }
-    #media-container {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      height: 100%;
-      width: 100%;
-      position: relative;
-      touch-action: pan-y; /* allow vertical scrolling but capture horizontal */
-    }
-    video, img {
-      max-width: 100%;
-      max-height: 100%;
-      object-fit: contain;
-      position: absolute;
-      opacity: 0;
-      transition: opacity 1s ease-in-out;
-    }
-    .visible {
-      opacity: 1;
-    }
-    #sound-toggle {
-      position: absolute;
-      bottom: 20px;
-      right: 20px;
-      background: rgba(0, 0, 0, 0.6);
-      color: white;
-      padding: 14px 20px;
-      border: none;
-      border-radius: 30px;
-      font-size: 18px;
-      cursor: pointer;
-      z-index: 1000;
-      transition: background 0.3s ease, transform 0.2s ease;
-      touch-action: manipulation;
-      user-select: none;
-    }
-    #sound-toggle:active,
-    #sound-toggle:hover {
-      background: rgba(255, 255, 255, 0.2);
-      transform: scale(1.08);
-    }
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    video, img { margin-top: 10px; border: 1px solid #ccc; border-radius: 6px; }
+    button { margin: 5px; padding: 8px 12px; }
   </style>
+
+  <!-- Firebase SDK (modules) -->
+  <script type="module" src="app.js"></script>
 </head>
+
 <body>
+  <h2>Upload or Record Video/Image</h2>
 
-<div id="media-container">
-  <button id="sound-toggle">🔊 Sound ON</button>
-</div>
+  <!-- Option 1: Upload File -->
+  <h3>📂 Upload from Device</h3>
+  <input type="file" id="fileInput" accept="image/*,video/*">
+  <button onclick="uploadFile()">Upload</button>
+  <p id="statusUpload"></p>
+  <div id="previewUpload"></div>
 
-<script>
-  const mediaList = [
-    { type: "video", src: "https://www.w3schools.com/html/mov_bbb.mp4" },
-    { type: "image", src: "https://www.w3schools.com/w3images/fjords.jpg" },
-    { type: "video", src: "https://www.w3schools.com/html/movie.mp4" },
-    { type: "image", src: "https://www.w3schools.com/w3images/lights.jpg" }
-  ];
+  <hr>
 
-  let currentIndex = 0;
-  let paused = false;
-  let currentElement = null;
-  let soundEnabled = true;
-
-  const container = document.getElementById("media-container");
-  const soundBtn = document.getElementById("sound-toggle");
-
-  function updateSoundUI() {
-    soundBtn.textContent = soundEnabled ? "🔊 Sound ON" : "🔇 Sound OFF";
-  }
-
-  function fadeIn(element) {
-    requestAnimationFrame(() => {
-      element.classList.add("visible");
-    });
-  }
-
-  function playMedia(index) {
-    container.innerHTML = "";
-    container.appendChild(soundBtn);
-
-    const media = mediaList[index];
-
-    if (media.type === "video") {
-      const video = document.createElement("video");
-      video.src = media.src;
-      video.autoplay = true;
-      video.controls = false;
-      video.muted = true; // Start muted to allow autoplay
-      video.playsInline = true;
-      video.style.zIndex = 1;
-
-      video.addEventListener("canplay", () => {
-        video.play().then(() => {
-          if (soundEnabled) {
-            video.muted = false;
-            video.play().catch(() => {});
-          }
-        }).catch(err => {
-          console.warn("Autoplay error:", err);
-        });
-      });
-
-      video.addEventListener("ended", () => nextMedia());
-
-      container.appendChild(video);
-      currentElement = video;
-      fadeIn(video);
-    } else if (media.type === "image") {
-      const img = document.createElement("img");
-      img.src = media.src;
-      img.style.zIndex = 1;
-      container.appendChild(img);
-      currentElement = img;
-      fadeIn(img);
-      setTimeout(() => {
-        if (!paused) nextMedia();
-      }, 5000);
-    }
-
-    if (!document.fullscreenElement) {
-      document.documentElement.requestFullscreen().catch(() => {});
-    }
-  }
-
-  function nextMedia() {
-    currentIndex = (currentIndex + 1) % mediaList.length;
-    playMedia(currentIndex);
-  }
-
-  function prevMedia() {
-    currentIndex = (currentIndex - 1 + mediaList.length) % mediaList.length;
-    playMedia(currentIndex);
-  }
-
-  function togglePause() {
-    paused = !paused;
-    if (currentElement?.tagName === "VIDEO") {
-      paused ? currentElement.pause() : currentElement.play();
-    }
-  }
-
-  function toggleSound() {
-    soundEnabled = !soundEnabled;
-    updateSoundUI();
-    if (currentElement?.tagName === "VIDEO") {
-      currentElement.muted = !soundEnabled;
-      currentElement.play().catch(() => {});
-    }
-  }
-
-  document.addEventListener("keydown", (e) => {
-    switch (e.code) {
-      case "ArrowRight": nextMedia(); break;
-      case "ArrowLeft": prevMedia(); break;
-      case "Space": e.preventDefault(); togglePause(); break;
-      // Add ArrowUp handler for toggling sound
-      case "ArrowUp": toggleSound(); break;  /* <-- NEW */
-    }
-  });
-
-  /*soundBtn.addEventListener("click", toggleSound);
-  soundBtn.addEventListener("touchstart", e => {
-    e.preventDefault();
-    toggleSound();
-  });*/
-
-
-  // Change button click to dispatch ArrowUp key event
-  soundBtn.addEventListener("click", () => {
-  const arrowUpEvent = new KeyboardEvent("keydown", { code: "ArrowUp" });
-  document.dispatchEvent(arrowUpEvent);
-  });
-
-  // Also handle touchstart the same way (for mobile)
-  soundBtn.addEventListener("touchstart", (e) => {
-  e.preventDefault();
-  const arrowUpEvent = new KeyboardEvent("keydown", { code: "ArrowUp" });
-  document.dispatchEvent(arrowUpEvent);
-    });
-
-  // Swipe detection variables
-  let touchStartX = 0;
-  let touchStartY = 0;
-  let touchEndX = 0;
-  let touchEndY = 0;
-
-  container.addEventListener("touchstart", e => {
-    const touch = e.changedTouches[0];
-    touchStartX = touch.screenX;
-    touchStartY = touch.screenY;
-  });
-
-  container.addEventListener("touchend", e => {
-    const touch = e.changedTouches[0];
-    touchEndX = touch.screenX;
-    touchEndY = touch.screenY;
-
-    const deltaX = touchEndX - touchStartX;
-    const deltaY = touchEndY - touchStartY;
-
-    // Detect horizontal swipe only if horizontal movement > vertical movement and beyond threshold
-    if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 40) {
-      if (deltaX < 0) {
-        // Swipe Left → Next
-        nextMedia();
-      } else {
-        // Swipe Right → Prev
-        prevMedia();
-      }
-    }
-  });
-
-  window.onload = () => {
-    updateSoundUI();
-    playMedia(currentIndex);
-  };
-</script>
-
+  <!-- Option 2: Record Video -->
+  <h3>🎥 Record from Camera (Selfie)</h3>
+  <video id="camera" width="400" autoplay muted playsinline></video><br>
+  <button id="startCamera">Start Camera</button>
+  <button id="startRecord" disabled>Start Recording</button>
+  <button id="stopRecord" disabled>Stop Recording</button>
+  <button id="uploadBtn" disabled onclick="uploadRecording()">Upload Recording</button>
+  <p id="statusRecord"></p>
+  <div id="previewRecord"></div>
 </body>
 </html>
