@@ -2,68 +2,57 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-    <link rel="stylesheet" href="02Intro.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>FreePo Story Camera</title>
+    <!-- Link to external CSS -->
+    <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"/>
+      <!-- Firebase SDK (modules) -->
+    <script type="module" src="app.js"></script>
 </head>
 <body>
-    
 
-<div class="form-container">
-        <div class="form-header">
-            <h1>Patient Intake Form</h1>
-            <p>Please fill out all required information below</p>
+    <div id="camera-container">
+        <video id="camera-view" autoplay playsinline muted></video>
+        
+        <div class="camera-overlay top">
+            <button id="close-camera" class="icon-btn"><i class="fas fa-times"></i></button>
+            <button id="flash-camera" class="icon-btn"><i class="fas fa-bolt"></i></button>
         </div>
         
-        <form id="intakeForm">
-            <div class="form-group">
-                <label for="fullName">Full Name of patient *</label>
-                <input type="text" id="fullName" name="fullName" required>
-                <div class="error-message">Please enter your full name</div>
+        <div class="camera-overlay bottom">
+             <input type="file" id="file-input" accept="image/*,video/*" style="display: none;"/>
+            <label for="file-input" class="icon-btn gallery-preview">
+                <i class="fas fa-images"></i>
+            </label>
+
+            <div id="shutter-button">
+                <div class="shutter-button-inner"></div>
             </div>
-
-            <div class="form-group">
-                <label for="email">Email Address *</label>
-                <input type="email" id="email" name="email" required>
-                <div class="error-message">Please enter a valid email address</div>
-            </div>
-
-            <div class="form-group">
-                <label for="phone">Phone Number *</label>
-                <input type="tel" id="phone" name="phone" required>
-                <div class="error-message">Please enter a valid phone number</div>
-            </div>
-
-            <div class="form-group">
-                <label for="dob">Date of Birth *</label>
-                <input type="date" id="dob" name="dob" required>
-                <div class="error-message">Please enter your date of birth</div>
-            </div>
-
-            <div class="form-group">
-                <label for="reason">Nation *</label>
-                <select id="reason" name="reason" required>
-                    <option value="">Select a reason</option>
-                    <option value="new-patient">Tunisia</option>
-                    <option value="follow-up">Libiya</option>
-                    <option value="emergency">Algeria</option>
-                    <option value="routine">Other</option>
-                </select>
-                <div class="error-message">Please select your nation</div>
-            </div>
-
-            <div class="form-group">
-                <label for="symptoms">Other think to said</label>
-                <textarea id="symptoms" name="symptoms" rows="4"></textarea>
-            </div>
-
-            <button type="submit">Submit Form</button>
-        </form>
-
-        <div class="success-message">
-            Thank you! Your form has been submitted successfully.
+            
+            <button id="flip-camera" class="icon-btn"><i class="fas fa-sync-alt"></i></button>
         </div>
     </div>
-    <script src="02Intro.js"></script>
-    </body>
+
+    <div id="preview-container" class="hidden">
+        <img id="image-preview" src="" alt="Captured Image Preview"/>
+        <video id="video-preview" playsinline loop controls src=""></video>
+
+        <div class="preview-overlay top">
+            <button id="back-to-camera" class="icon-btn"><i class="fas fa-chevron-left"></i></button>
+            </div>
+
+        <div class="preview-overlay bottom">
+            <button id="share-story-btn" class="share-btn">
+                <i class="fas fa-paper-plane"></i> Share to Story
+            </button>
+        </div>
+        
+        <div id="loading-overlay" class="hidden">
+            <div class="spinner"></div>
+            <p>Publishing...</p>
+        </div>
+    </div>
+
+</body>
 </html>
