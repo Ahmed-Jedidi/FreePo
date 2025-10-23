@@ -191,3 +191,58 @@ body {
 @keyframes spin {
     to { transform: rotate(360deg); }
 }
+
+
+
+/* ========== Toast Notification System ========== */
+#toast-container {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 200; /* Ensure it's on top of everything */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+
+.toast {
+    padding: 12px 20px;
+    border-radius: 25px; /* Pill shape */
+    color: #fff;
+    font-size: 15px;
+    font-weight: 500;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    opacity: 0;
+    transform: translateY(-20px);
+    animation: slideIn 0.5s forwards;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Animation for the toast appearing */
+@keyframes slideIn {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Style for Success (green) */
+.toast.success {
+    background-color: #28a745; /* A pleasant green */
+}
+
+/* Style for Error (red) */
+.toast.error {
+    background-color: #dc3545; /* A clear red */
+}
+
+
+/* Style for active icon buttons */
+.icon-btn.active {
+    color: #f1c40f; /* A bright yellow */
+}
+
