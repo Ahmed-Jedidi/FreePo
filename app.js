@@ -33,7 +33,69 @@ const imagePreview = document.getElementById('image-preview');
 const videoPreview = document.getElementById('video-preview');
 const backToCameraButton = document.getElementById('back-to-camera');
 const shareStoryButton = document.getElementById('share-story-btn');
-const loadingOverlay = document.getElementById('loading-overlay');
+// ... (other elements)
+const flashCameraButton = document.getElementById('flash-camera');
+const loadingOverlay = document.getElementById('loading-overlay'); // Make sure this is the last one in this block
+
+// ... (DOM Elements declarations) ...
+
+// ========== UI Functions ==========
+
+/**
+ * Displays a toast notification message.
+ * @param {string} message The message to display.
+ * @param {string} type The type of toast ('success' or 'error').
+ */
+function showToast(message, type = 'success') {
+    const toastContainer = document.getElementById('toast-container');
+    
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    
+    // Add an icon for better UX
+    const icon = type === 'success' ? '<i class="fas fa-check-circle"></i>' : '<i class="fas fa-times-circle"></i>';
+    toast.innerHTML = `${icon} ${message}`;
+    
+    toastContainer.appendChild(toast);
+
+    // Automatically remove the toast after 3 seconds
+    setTimeout(() => {
+        toast.style.animation = 'slideOut 0.5s forwards'; // Optional: add a slide-out animation
+        setTimeout(() => toast.remove(), 500);
+    }, 3000);
+}
+
+/**
+ * Toggles the device's camera flash (torch).
+ */
+async function toggleFlash() {
+    // Make sure we have a media stream to work with
+    if (!mediaStream) return;
+
+    const videoTrack = mediaStream.getVideoTracks()[0];
+    const capabilities = videoTrack.getCapabilities();
+
+    // Check if the device and browser even support the torch feature
+    if (!capabilities.torch) {
+        showToast("Flash is not available on this device.", 'error');
+        return;
+    }
+
+    try {
+        isFlashOn = !isFlashOn; // Invert the current flash state
+        await videoTrack.applyConstraints({
+            advanced: [{ torch: isFlashOn }]
+        });
+        
+        // Update the button's appearance
+        flashCameraButton.classList.toggle('active', isFlashOn);
+
+    } catch (err) {
+        console.error("Error controlling flash:", err);
+        showToast("Could not control the flash.", 'error');
+    }
+}
+
 
 // ========== State Management - Camera Recording ==========
 let mediaStream;
@@ -41,6 +103,8 @@ let mediaRecorder;
 let recordedChunks = [];
 let capturedMediaBlob = null;
 let facingMode = "user"; // 'user' for front, 'environment' for back camera
+// ... (other variables)
+let isFlashOn = false; // Add this line
 
 // ========== Core Functions ==========
 
@@ -59,7 +123,8 @@ async function startCamera() {
         cameraView.srcObject = mediaStream;
     } catch (err) {
         console.error("Camera access denied:", err);
-        alert("Could not access the camera. Please check permissions.");
+        // alert("Could not access the camera. Please check permissions.");
+        showToast("Camera access denied. Check permissions.", 'error');
     }
 }
 
@@ -150,7 +215,8 @@ function returnToCamera() {
  */
 async function publishStory() {
     if (!capturedMediaBlob) {
-        alert("No media to publish!");
+        // alert("No media to publish!");
+        showToast("Nothing to publish!", 'error');
         return;
     }
 
@@ -167,13 +233,15 @@ async function publishStory() {
         if (data.secure_url) {
             await saveToFirebase(data.secure_url, capturedMediaBlob.type);
             console.log("✅ Successfully published:", data.secure_url);
-            alert("Story published successfully!");
+            // alert("Story published successfully!");
+            showToast("Story published successfully!", 'success');
         } else {
             throw new Error('Upload to Cloudinary failed.');
         }
     } catch (err) {
         console.error("❌ Publish failed:", err);
-        alert("Failed to publish story. Please try again.");
+        // alert("Failed to publish story. Please try again.");
+        showToast("Failed to publish. Please try again.", 'error');
     } finally {
         loadingOverlay.classList.add('hidden');
         returnToCamera();
@@ -238,6 +306,9 @@ shutterButton.addEventListener('touchend', (e) => {
         takePhoto();
     }
 });
+
+// Flash button
+flashCameraButton.addEventListener('click', toggleFlash);
 
 // Flip camera
 flipCameraButton.addEventListener('click', () => {
