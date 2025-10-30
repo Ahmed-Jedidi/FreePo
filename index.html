@@ -3,142 +3,67 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>FreePo Patient Setup</title>
-    
-    <!-- Google Fonts: Inter -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    
+    <title>FreePo Story Camera</title>
     <!-- Link to external CSS -->
     <link rel="stylesheet" href="style.css" />
-    <!-- Font Awesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"/>
-    <!-- QR Code Generator Library -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode/1.5.3/qrcode.min.js"></script>
-    <!-- Firebase SDK (modules) -->
+      <!-- Firebase SDK (modules) -->
     <script type="module" src="app.js"></script>
 </head>
 <body>
 
-    <!-- Main App Container -->
-    <div class="app-container">
+    <div id="camera-container">
+        <video id="camera-view" autoplay playsinline muted></video>
+        
+        <div class="camera-overlay top">
+            <button id="close-camera" class="icon-btn"><i class="fas fa-times"></i></button>
+            <button id="flash-camera" class="icon-btn"><i class="fas fa-bolt"></i></button>
+        </div>
+        
+        <div class="camera-overlay bottom">
+             <input type="file" id="file-input" accept="image/*,video/*" style="display: none;"/>
+            <label for="file-input" class="icon-btn gallery-preview">
+                <i class="fas fa-images"></i>
+            </label>
 
-        <!-- ===== 1. Splash Screen ===== -->
-        <div id="splash-screen" class="screen">
-            <div class="card splash-card">
-                <header class="splash-header">
-                    <img id="clinic-logo" src="https://placehold.co/100x100/0095f6/white?text=Logo" alt="Clinic Logo" class="logo">
-                    <h1 id="clinic-name">Clinic Name</h1>
-                    <p id="clinic-description">Loading clinic details...</p>
-                </header>
-                <button id="start-setup-btn" class="btn primary full-width">
-                    <i class="fas fa-user-plus"></i>
-                    Start Patient Setup
+            <div id="shutter-button">
+                <div class="shutter-button-inner"></div>
+            </div>
+            
+            <button id="flip-camera" class="icon-btn"><i class="fas fa-sync-alt"></i></button>
+        </div>
+    </div>
+
+    <div id="preview-container" class="hidden">
+        <img id="image-preview" src="" alt="Captured Image Preview"/>
+        <video id="video-preview" playsinline loop controls src=""></video>
+
+        <div class="preview-overlay top">
+            <button id="back-to-camera" class="icon-btn"><i class="fas fa-chevron-left"></i></button>
+            </div>
+
+        <!--<div class="preview-overlay bottom">
+            <button id="share-story-btn" class="share-btn">
+                <i class="fas fa-paper-plane"></i> Share to Story
+            </button>
+        </div>-->
+        <div class="preview-overlay bottom">
+            <div class="publish-controls">
+                <input type="text" id="caption-input" placeholder="Add a caption...">
+                <button id="publish-btn" class="icon-btn send-btn">
+                    <i class="fas fa-paper-plane"></i>
                 </button>
-                <footer class="freepo-footer">
-                    Powered by <strong>FreePo</strong>
-                </footer>
             </div>
         </div>
-
-        <!-- ===== 2. Form Screen ===== -->
-        <div id="form-screen" class="screen hidden">
-            <div class="card">
-                <header class="card-header">
-                    <button id="back-to-splash" class="icon-btn back-btn" aria-label="Back to splash screen"><i class="fas fa-chevron-left"></i></button>
-                    <h2>New Patient Details</h2>
-                </header>
-                
-                <form id="patient-form">
-                    <div class="form-group">
-                        <label for="patient-name">Patient's Name</label>
-                        <div class="input-wrapper">
-                            <i class="fas fa-user icon"></i>
-                            <input type="text" id="patient-name" placeholder="e.g., Jane Doe" required>
-                        </div>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="room-number">Room Number</label>
-                        <div class="input-wrapper">
-                            <i class="fas fa-door-open icon"></i>
-                            <input type="text" id="room-number" placeholder="e.g., 204B" required>
-                        </div>
-                    </div>
-                    
-                    <!-- Dynamic Contacts Section -->
-                    <div class="form-group">
-                        <label>Family Contacts (Email)</label>
-                        <div id="family-contacts-container">
-                            <!-- Initial contact entry -->
-                            <div class="contact-entry">
-                                <div class="input-wrapper">
-                                    <i class="fas fa-envelope icon"></i>
-                                    <input type="email" placeholder="e.g., family@example.com" class="contact-email">
-                                </div>
-                                <button type="button" class="icon-btn remove-btn" aria-label="Remove email"><i class="fas fa-times"></i></button>
-                            </div>
-                        </div>
-                        <button type="button" id="add-contact-btn" class="btn text-btn">
-                            <i class="fas fa-plus-circle"></i> Add Another Contact
-                        </button>
-                    </div>
-                    <!-- End Dynamic Contacts -->
-                    
-                    <button type="submit" id="submit-form-btn" class="btn primary full-width">
-                        <span class="btn-text">Generate Patient Link</span>
-                        <div class="spinner-small hidden"></div>
-                    </button>
-                </form>
-            </div>
+        
+        <div id="loading-overlay" class="hidden">
+            <div class="spinner"></div>
+            <p>Publishing...</p>
         </div>
-
-        <!-- ===== 3. Share Screen ===== -->
-        <div id="share-screen" class="screen hidden">
-            <div class="card">
-                <header class="card-header">
-                    <button id="setup-new-patient" class="icon-btn back-btn" aria-label="Setup new patient"><i class="fas fa-plus"></i></button>
-                    <h2>Share Patient's Link</h2>
-                </header>
-                
-                <p class="share-instructions">
-                    Scan the QR code or share the link with friends and family. This link allows them to send videos and messages to the patient.
-                </p>
-
-                <div class="qr-container">
-                    <canvas id="qr-canvas"></canvas>
-                </div>
-
-                <div class="share-link-container">
-                    <input type="text" id="share-link" readonly>
-                    <!-- Native Share Button (hidden by default) -->
-                    <button id="native-share-btn" class="btn primary hidden" aria-label="Share link">
-                        <i class="fas fa-share-alt"></i>
-                    </button>
-                    <button id="copy-link-btn" class="btn secondary" aria-label="Copy link">
-                        <i class="fas fa-copy"></i> Copy
-                    </button>
-                </div>
-                
-                <div class="info-box">
-                    <p><strong><i class="fas fa-heartbeat"></i> We aim to...</strong></p>
-                    <p>...include activities that reduce feelings of distance and isolation, helping patients confront loneliness.</p>
-                </div>
-            </div>
-        </div>
-
     </div>
 
-    <!-- Global Loading Overlay -->
-    <div id="loading-overlay" class="hidden">
-        <div class="spinner"></div>
-        <p id="loading-text">Loading...</p>
-    </div>
-
-    <!-- Toast Notification Container -->
+    <!-- Alert -->
     <div id="toast-container"></div>
 
 </body>
 </html>
-
