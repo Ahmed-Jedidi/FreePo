@@ -32,7 +32,9 @@ const fileInput = document.getElementById('file-input');
 const imagePreview = document.getElementById('image-preview');
 const videoPreview = document.getElementById('video-preview');
 const backToCameraButton = document.getElementById('back-to-camera');
-const shareStoryButton = document.getElementById('share-story-btn');
+// REPLACE this line: const shareStoryButton = document.getElementById('share-story-btn');
+const captionInput = document.getElementById('caption-input');
+const publishButton = document.getElementById('publish-btn');
 // ... (other elements)
 const flashCameraButton = document.getElementById('flash-camera');
 const loadingOverlay = document.getElementById('loading-overlay'); // Make sure this is the last one in this block
@@ -201,6 +203,14 @@ function showPreview(blob, type) {
 /**
  * Returns to the camera view from the preview
  */
+/*function returnToCamera() {
+    previewContainer.classList.add('hidden');
+    cameraContainer.classList.remove('hidden');
+    // Clean up blob URL to prevent memory leaks
+    if (imagePreview.src) URL.revokeObjectURL(imagePreview.src);
+    if (videoPreview.src) URL.revokeObjectURL(videoPreview.src);
+    capturedMediaBlob = null;
+}*/
 function returnToCamera() {
     previewContainer.classList.add('hidden');
     cameraContainer.classList.remove('hidden');
@@ -208,12 +218,20 @@ function returnToCamera() {
     if (imagePreview.src) URL.revokeObjectURL(imagePreview.src);
     if (videoPreview.src) URL.revokeObjectURL(videoPreview.src);
     capturedMediaBlob = null;
+    
+    // --- Reset publish controls for the next use ---
+    captionInput.value = '';
+    captionInput.disabled = false;
+    publishButton.disabled = false;
+    publishButton.classList.remove('success', 'publishing');
+    publishButton.innerHTML = '<i class="fas fa-paper-plane"></i>';
 }
 
+
 /**
- * Uploads the captured media to Cloudinary and saves URL to Firebase
+ * Uploads the captured media and caption to Cloudinary and saves URL to Firebase
  */
-async function publishStory() {
+/*async function publishStory() {
     if (!capturedMediaBlob) {
         // alert("No media to publish!");
         showToast("Nothing to publish!", 'error');
@@ -246,16 +264,86 @@ async function publishStory() {
         loadingOverlay.classList.add('hidden');
         returnToCamera();
     }
+}*/
+/**
+ * Uploads the captured media and caption to Cloudinary and saves URL to Firebase
+ */
+async function publishStory() {
+    if (!capturedMediaBlob) {
+        showToast("Nothing to publish!", 'error');
+        return;
+    }
+    
+    // Get the caption text
+    const caption = captionInput.value.trim();
+
+    // --- UI feedback for publishing state ---
+    publishButton.disabled = true;
+    captionInput.disabled = true;
+    publishButton.classList.add('publishing');
+    // Replace icon with a mini spinner
+    publishButton.innerHTML = '<div class="spinner-small"></div>';
+
+    const formData = new FormData();
+    formData.append('file', capturedMediaBlob);
+    formData.append('upload_preset', uploadPreset);
+
+    try {
+        const res = await fetch(uploadUrl, { method: 'POST', body: formData });
+        const data = await res.json();
+        
+        if (data.secure_url) {
+            // Pass the caption along to be saved in Firebase
+            await saveToFirebase(data.secure_url, capturedMediaBlob.type, caption);
+            console.log("✅ Successfully published:", data.secure_url);
+            
+            // --- Success animation ---
+            publishButton.classList.remove('publishing');
+            publishButton.classList.add('success');
+            publishButton.innerHTML = '<i class="fas fa-check"></i>';
+
+            // Wait a moment to show success, then reset and go back to camera
+            setTimeout(() => {
+                returnToCamera();
+            }, 1500); // 1.5-second delay for the user to see the checkmark
+
+        } else {
+            throw new Error('Upload to Cloudinary failed.');
+        }
+    } catch (err) {
+        console.error("❌ Publish failed:", err);
+        showToast("Failed to publish. Please try again.", 'error');
+        // Reset button on failure so user can try again
+        publishButton.disabled = false;
+        captionInput.disabled = false;
+        publishButton.classList.remove('publishing');
+        publishButton.innerHTML = '<i class="fas fa-paper-plane"></i>';
+    }
+    // We no longer need the 'finally' block as the logic is handled in success/error paths
 }
 
 /**
  * Saves the media URL to Firebase
  */
-async function saveToFirebase(url, type) {
+/*async function saveToFirebase(url, type) {
     try {
         await addDoc(collection(db, "stories"), {
             url,
             type,
+            timestamp: new Date()
+        });
+        console.log("✅ Saved to Firebase:", url);
+    } catch (e) {
+        console.error("❌ Error saving to Firebase:", e);
+    }
+}*/
+
+async function saveToFirebase(url, type, caption) { // Add caption parameter
+    try {
+        await addDoc(collection(db, "stories"), {
+            url,
+            type,
+            caption, // Add the caption to the document
             timestamp: new Date()
         });
         console.log("✅ Saved to Firebase:", url);
@@ -327,7 +415,8 @@ fileInput.addEventListener('change', (event) => {
 
 // Preview screen buttons
 backToCameraButton.addEventListener('click', returnToCamera);
-shareStoryButton.addEventListener('click', publishStory);
+// Change this line: shareStoryButton.addEventListener('click', publishStory);
+publishButton.addEventListener('click', publishStory); // Attach to the new button
 
 // ========== Initialize ==========
 window.addEventListener('load', startCamera);
