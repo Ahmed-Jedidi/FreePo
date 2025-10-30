@@ -141,8 +141,9 @@ body {
     transform: scale(0.6);
 }
 
+/* DELETE THIS ENTIRE BLOCK */
 /* Preview Screen Buttons */
-.share-btn {
+/*.share-btn {
     background-color: #fff;
     color: #000;
     border: none;
@@ -162,7 +163,7 @@ body {
 }
 .share-btn i {
     margin-right: 8px;
-}
+}*/
 
 /* Loading Overlay */
 #loading-overlay {
@@ -246,3 +247,79 @@ body {
     color: #f1c40f; /* A bright yellow */
 }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* ========== New Publish Controls ========== */
+.publish-controls {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    gap: 10px;
+}
+
+#caption-input {
+    flex-grow: 1; /* Take up available space */
+    background: rgba(30, 30, 30, 0.7);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 25px;
+    color: #fff;
+    padding: 12px 18px;
+    font-size: 15px;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+#caption-input::placeholder {
+    color: #aaa;
+}
+
+#caption-input:focus {
+    border-color: #fff;
+}
+
+.send-btn {
+    background-color: #0095f6; /* A vibrant blue */
+    width: 50px;
+    height: 50px;
+    font-size: 20px;
+    flex-shrink: 0; /* Prevent button from shrinking */
+}
+
+/* State: Button during publishing */
+.send-btn.publishing {
+    background-color: #555;
+    cursor: not-allowed;
+}
+
+/* A smaller spinner for the button */
+.spinner-small {
+    width: 24px;
+    height: 24px;
+    border: 3px solid rgba(255, 255, 255, 0.3);
+    border-left-color: #fff;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+/* State: Button on successful publish */
+.send-btn.success {
+    background-color: #28a745; /* Green for success */
+    transform: scale(1.1);
+}
